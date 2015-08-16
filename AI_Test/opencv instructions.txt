@@ -1,0 +1,25 @@
+OpenCV Full Install Instruction for VS 2015 and OpenCV 3
+================================================
+
+Install vcredistx64 and x86 for Visual Studio 2013
+
+Debug DLLs: Linking statically and dynamically
+Release DLLs: part of VC++ library for end users, build with Release branch always
+
+Windows Setup
+=======================
+1. Extract opencv files somewhere you'll find them (easy dir)
+2. Add the full \opencv\build\x64\vc12 to your PATH variable in the registry at HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\OPENCV_DIR
+3. make OPENCV_ROOT in the same location in regedit, refer it to opencv\
+4. Install vcredistx64 and x86 for Visual Studio 2013
+	
+Visual Studio Setup
+=======================
+1. Setup a Property Sheet of your Solution -> in Release | x64
+2. C/C++ -> General -> Additional Include Directories -> $(OPENCV_ROOT)\build\include
+2a. C/C++ -> Code Generation -> Runtime Library -> Multi0threaded DLL (/MD)
+3. Linker -> General-> Additional Library Directories -> $(OPENCV_DIR)\lib
+4. Linker -> Input -> Additional Dependencies -> opencv_world300.lib;opencv_ts300.lib
+5. Set Release and x64 and run the example.cpp file from the OpenCV folder.
+6. If you get a MSCVP120D.dll error........
+7. In C:\Windows\system32 and sysWOW64, copy the DLL there
