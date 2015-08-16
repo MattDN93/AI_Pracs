@@ -50,9 +50,11 @@ int main(int argc, char **argv)
 	namedWindow("Binary matrix", WINDOW_AUTOSIZE);
 	imshow("Binary Matrix", binaryMat);
 
-	std::cout << "Done. Press any key to quit, else quitting in 15 seconds." << std::endl;
+	std::cout << binaryMat;
 
-	waitKey(15000);
+	std::cout << "Done. Press any key to quit." << std::endl;
+
+	waitKey(0);
 
 	return 0;
 }
