@@ -153,7 +153,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\Apps\opencv\sources\samples\cpp\tutorial_code\core\file_input_output\file_input_output.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\Apps\opencv\sources\samples\cpp\tutorial_code\core\Matrix\Drawing_1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -162,7 +162,9 @@
     <ClCompile Include="..\..\..\..\..\Apps\opencv\sources\samples\cpp\tutorial_code\core\Matrix\Drawing_2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="basic_dfs.cpp" />
+    <ClCompile Include="basic_dfs.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="img_to_mat.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
