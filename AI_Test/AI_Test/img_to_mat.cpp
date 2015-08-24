@@ -4,35 +4,42 @@
 		212503024
 */
 
-#include <opencv2/opencv.hpp>
-#include <iostream>
+#include "CC_detect.h"	//user-defined header with classes and var defs
 
 using namespace cv;		//for ease using openCV namespace
 						//stdlib fns will be ref'd explicitly
 
 /* The user calls this exe with arguments for the filename*/
 
-int main(int argc, char **argv)
+int main(int argc)
 {
-	if (argc != 2) //if the user spec'd argument is wrong
+	std::cout << "Artificial Intelligence Prac 1\nMatthew de Neef\n212503024\n" << std::endl;
+
+	while (fileSuccess == false)		//while there's an error opening the file, keep asking
 	{
-		std::cout << "Syntax error. Use '" << argv[0] << " <path_to_file>. Try again." << std::endl;
-		return 1;	//throw a syntax error and quit
-	}
+		/*Request filename from user*/
 
+		std::cout << "\nPlease enter a file path to open, fully qualified. (Type 'quit' to quit): " << std::endl;
+		std::getline(std::cin, filePath);
 
-	/* Expect argument as "img_to_mat.exe C:\my\directory\filename.jpg" */
-
-	/*use CV libraries to deal with image
+		/*use CV libraries to deal with image
 		imread function takes any colour depth image with filename in argv
-	*/
-
-	Mat inputImgMat = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-	if (inputImgMat.empty())
-	{
-		std::cerr << "Error. Image filename '" << argv[1] << "' is invalid or could not be opened." << std::endl;
-		return 1;
+		*/
+		
+		inputImgMat = imread(filePath, CV_LOAD_IMAGE_COLOR); //loads up image in grayscale format
+		if (inputImgMat.empty())
+		{
+			std::cout << "\n-------------------------------------------" << std::endl;
+			std::cerr << "\nError. Image filename '" << filePath << "' is invalid or could not be opened.\n Try again." << std::endl;
+			std::cout << "\n-------------------------------------------" << std::endl;
+			fileSuccess = false;
+		}
+		else {
+			fileSuccess = true;
+		}
 	}
+	
+	//else we assume file opening OK...
 
 	//convert the image matrix to greyscale (basically resize it)
 	Mat inputImgGreyScale(inputImgMat.size(), CV_8U);
@@ -50,9 +57,9 @@ int main(int argc, char **argv)
 	namedWindow("Binary matrix", WINDOW_AUTOSIZE);
 	imshow("Binary Matrix", binaryMat);
 
-	std::cout << binaryMat;
+	std::cout << binaryMat /255;
 
-	std::cout << "Done. Press any key to quit." << std::endl;
+	std::cout << "\n\nDone. Press any key to quit." << std::endl;
 
 	waitKey(0);
 
