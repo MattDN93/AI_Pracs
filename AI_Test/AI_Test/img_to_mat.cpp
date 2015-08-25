@@ -38,6 +38,9 @@ int main(int argc)
 			fileSuccess = true;
 		}
 	}
+
+	//instantiate class object
+	CC connectedCompo;
 	
 	//else we assume file opening OK...
 
@@ -59,9 +62,38 @@ int main(int argc)
 
 	std::cout << binaryMat /255;
 
+	//Mat newBinMat = ScanImageAndReduce(binaryMat);
+	//int i, j;
+	//for (int i = 0; i < binaryMat.rows; i++)
+	//{
+	//	for (int j = 0; j < binaryMat.cols; j++)
+	//	{
+	//		binaryMat.at()
+	//	}
+	//}
+	
 	std::cout << "\n\nDone. Press any key to quit." << std::endl;
 
 	waitKey(0);
 
 	return 0;
+}
+
+Mat& ScanImageAndReduce(Mat& I)
+{
+	// accept only char type matrices
+	CV_Assert(I.depth() != sizeof(uchar));
+
+	int channels = I.channels();
+
+	int nRows = I.rows;
+	int nCols = I.cols * channels;
+
+	if (I.isContinuous())
+	{
+		nCols *= nRows;
+		nRows = 1;
+	}
+	
+	return I;
 }
