@@ -4,13 +4,19 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
 
+#include <fstream>
+
 //for centroid storage
 #define x_bar 0
 #define y_bar 1
+
+//for debug only
+#define DEBUG 1
 
 using namespace cv;
 #pragma endregion
@@ -20,11 +26,13 @@ using namespace cv;
 //For file management
 std::string filePath;		//name of file path
 std::string quitStr = "quit";
+
 bool fileSuccess = false;			//whether file opened OK
+bool writeFileSuccess = false;
 
 //OpenCV vars
 Mat inputImgMat;			//input matrix from image
-Mat& ScanImageAndReduce(Mat& I);
+Mat tempProcMat;			//temporary processing matrix
 #pragma endregion
 
 #pragma region CC Class & Function Defs
@@ -106,21 +114,47 @@ CC::~CC()
 
 inline void CC::addPixToCC(int x, int y, bool onPerim)
 {
+	//instantiate new struct of type pix with default arguments
+	pix pixel = { x,y,onPerim };
+	//add the populated structure of pixel data to the connected compo vector
+	ccPixels.push_back(pixel);
 }
 
 inline int CC::findSurfArea()
 {
-	return 0;
+	//surface area of CC = number of pixels contained in CC
+	return ccPixels.size();
 }
 
 inline int CC::findPerimeter()
 {
-	return 0;
+	//perimeter is adding up the number of pixels marked as on perimeter
+	int perimPixelCount = 0;
+	for (int i = 0; i < ccPixels.size(); i++)
+	{
+		if (ccPixels[i].perim == true)
+		{	
+			//if the pixel is on the perimeter add it to the perimeter
+			perimPixelCount++;
+		}
+	}
+	//if an abnormality occurred, inform user
+	if (perimPixelCount == 0)
+	{
+		std::cerr << "The pixel count is zero. The shape cannot have no perimeter, an erro has occurred." << std::endl;
+	}
+	return perimPixelCount;
 }
 
 inline float * CC::getCentroid()
 {
-	return NULL;
+	//if we have not yet calculated the centroids, do so and return the array
+	if (centroids_found == false)
+	{
+		findCentroid();
+		
+	}
+	return centroid;
 }
 
 inline float * CC::getInvariantMoments()
@@ -247,5 +281,11 @@ inline bool CC::findInvarMoments()
 }
 
 
+
+#pragma endregion
+
+#pragma region Other Prototypes
+
+void findCC(Mat,Mat, int, int, int, CC *);
 
 #pragma endregion
