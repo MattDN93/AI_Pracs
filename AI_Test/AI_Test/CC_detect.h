@@ -43,12 +43,22 @@ public:
 	//default constructor/destructor
 	CC();
 	~CC();
+
+	//-------------pixel structure---------------------------
+	//The pixel structure allows for marking perimeter pixels on-the-fly
+	struct pix
+	{
+		int x;			//x-coord
+		int y;			//y-coord
+		bool perim;		//part of perimeter?
+	};
+
 	//-------------pixel edit tool-----------
 	//matrix of pixel points
 	Mat pixPoints;
 	//adds a given scanned pixel to the CC
 	void addPixToCC(int x, int y, bool onPerim);
-
+	void addPixToCC(pix p);
 	//returns surface area /perimeter of CC
 	int findSurfArea();
 	int findPerimeter();
@@ -58,23 +68,17 @@ public:
 	//returns pointer to invMoments array
 	float *getInvariantMoments();
 	//returns 2D points from Mat object
-	Mat getPoints();
+	//Mat getPoints();
+	//overload operators
+	friend std::ostream &operator<< (std::ostream &output, const CC c);
 
-	
 private:
-	//-------------pixel structure---------------------------
-	//The pixel structure allows for marking perimeter pixels on-the-fly
-	struct pix
-	{
-		int x;			//x-coord
-		int y;			//y-coord
-		bool perim;		//part of perimeter?
-	};
+	int perimeter;
 	//-------------vector of structs-------------------------
 	//vector allows for structs of each pixel+co-ord to be stores
 	//memory allocation is managed automatically
 	std::vector<pix> ccPixels;
-	std::vector<Point2f> points;
+	//std::vector<Point2f> points;
 	//-------------centroids and invariant moments-----------
 	//invariant moments of connected components (0-6 = 7 moments)
 	float invarMoment[7];
@@ -102,6 +106,9 @@ private:
 	bool centroids_found = false;
 	//Is <mu>_00 found?
 	bool mu_00_found = false;
+
+
+
 };
 
 CC::CC()
@@ -116,8 +123,18 @@ inline void CC::addPixToCC(int x, int y, bool onPerim)
 {
 	//instantiate new struct of type pix with default arguments
 	pix pixel = { x,y,onPerim };
+	addPixToCC(pixel);
+
+}
+
+inline void CC::addPixToCC(pix p)
+{
 	//add the populated structure of pixel data to the connected compo vector
-	ccPixels.push_back(pixel);
+	ccPixels.push_back(p);
+	if (p.perim == true)
+	{
+		perimeter++;
+	}
 }
 
 inline int CC::findSurfArea()
@@ -141,7 +158,7 @@ inline int CC::findPerimeter()
 	//if an abnormality occurred, inform user
 	if (perimPixelCount == 0)
 	{
-		std::cerr << "The pixel count is zero. The shape cannot have no perimeter, an erro has occurred." << std::endl;
+		std::cerr << "The pixel count is zero. The shape cannot have no perimeter, an error has occurred." << std::endl;
 	}
 	return perimPixelCount;
 }
@@ -152,7 +169,6 @@ inline float * CC::getCentroid()
 	if (centroids_found == false)
 	{
 		findCentroid();
-		
 	}
 	return centroid;
 }
@@ -183,18 +199,18 @@ inline float * CC::getInvariantMoments()
 	return invarMoment;
 }
 
-inline Mat CC::getPoints()
-{
-	pixPoints = Mat(points);
-	return pixPoints;
-}
+//inline Mat CC::getPoints()
+//{
+//	pixPoints = Mat(points);
+//	return pixPoints;
+//}
 
 inline float CC::calc2dMoments(int p, int q)
 {
 	/*summation given by:
 	(SIGMA_X)(SIGMA_Y)x^p * y^q */
 
-	float summation;
+	float summation=0.0;
 	for (int i = 0; i < ccPixels.size(); i++)
 	{
 		summation += pow(ccPixels[i].x, p) * pow(ccPixels[i].y, q);
@@ -205,15 +221,15 @@ inline float CC::calc2dMoments(int p, int q)
 inline void CC::findCentroid()
 {
 	//find the x and y centroids of the image
-	centroid[x_bar] = calc2dMoments(1, 0) / calc2dMoments(0, 0);
-	centroid[y_bar] = calc2dMoments(0, 1) / calc2dMoments(0, 0);
+	centroid[x_bar] = calc2dMoments(0, 1) / calc2dMoments(0, 0);
+	centroid[y_bar] = calc2dMoments(1, 0) / calc2dMoments(0, 0);
 
 	centroids_found = true;	//we hae found the centroids
 }
 
 inline float CC::findCentralMoments(int p, int q)
 {
-	float summation;
+	float summation=0.0;
 	for (int i = 0; i < ccPixels.size(); i++)
 	{
 		summation += pow(ccPixels[i].x - centroid[x_bar], p) * pow(ccPixels[i].y - centroid[y_bar], q);
@@ -231,7 +247,7 @@ inline float CC::findNormalisedCentroidMoments(int p, int q)
 	
  */
 
-	float gamma = (p + q / 2) + 1;
+	float gamma = (p + q / 2.0) + 1;
 	float neta_pq;
 	neta_pq = findCentralMoments(p, q) / pow(mu_00, gamma);
 	return neta_pq;
@@ -241,11 +257,11 @@ inline bool CC::findInvarMoments()
 {
 	//using Hu's formula for invariant moments
 	//if any of the variables haven't been set, or image is empty, throw an error.
-	if (ccPixels.empty() || !mu_00_found || !centroids_found)
+	if (ccPixels.empty() || mu_00_found==false || centroids_found==false)
 	{
 		return false;
 	}
-	else {
+	//else {
 		//first fine neta values with normalized invariant moment formula
 		float neta_02 = findNormalisedCentroidMoments(0, 2);
 		float neta_20 = findNormalisedCentroidMoments(2, 0);
@@ -276,7 +292,7 @@ inline bool CC::findInvarMoments()
 			(3 * pow(neta_30 + neta_12, 2) - pow(neta_21 + neta_03, 2));
 
 		return true;
-	}
+	//}
 	
 }
 
@@ -286,6 +302,7 @@ inline bool CC::findInvarMoments()
 
 #pragma region Other Prototypes
 
-void findCC(Mat,Mat, int, int, int, CC *);
+void findCC(Mat&,Mat&, int, int, int, CC *);
+
 
 #pragma endregion

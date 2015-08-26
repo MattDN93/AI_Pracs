@@ -59,7 +59,7 @@ int main(int argc)
 	Mat binaryMat(inputImgGreyScale.size(), inputImgGreyScale.type());
 
 	//apply threshold values (everything either goes to 0 or 255)
-	threshold(inputImgGreyScale, binaryMat, 100, 255, cv::THRESH_BINARY);
+	threshold(inputImgGreyScale, binaryMat, 50, 255, cv::THRESH_BINARY);
 
 	//display the results using OCV's window render
 	namedWindow("Binary matrix", WINDOW_AUTOSIZE);
@@ -75,8 +75,10 @@ int main(int argc)
 	//this list is dynamically allocated; it holds all the connected component objects found
 	std::list<CC> listOfConnectedCompos;
 
+	uchar *row_ptr = NULL;
 	for (int i = 0; i < binaryMat.rows; i++)
 	{
+		//row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
 		for (int j = 0; j < binaryMat.cols; j++)
 		{
 			//look for an initial unprocessed pixel?
@@ -88,6 +90,7 @@ int main(int argc)
 				findCC(binaryMat,tempProcMat, i, binaryMat.rows, j, &connectedCompo);
 				//if found, add to the list of CCs at the front
 				listOfConnectedCompos.push_front(connectedCompo);
+				
 				std::cout << "\n Connected Component Found!" << std::endl;
 			}
 		}
@@ -95,7 +98,7 @@ int main(int argc)
 	//DEBUG!
 	if (DEBUG)
 	{
-		std::cout << binaryMat / 255;
+		std::cout << binaryMat;
 	}
 
 	//Mat newBinMat = ScanImageAndReduce(binaryMat);
@@ -107,16 +110,33 @@ int main(int argc)
 	//		binaryMat.at()
 	//	}
 	//}
+
+	//--------------perform the calculation for invariat moments----
 	
-	std::cout << "\n\nDone. Press any key to quit." << std::endl;
+
+	//--------------output result to file------------------
+	std::cout << "\n\nDone. Outputting to file....." << std::endl;
+	std::cout << "\nA total of " << listOfConnectedCompos.size() << " connected components found." << std::endl;
+
+
+	for (int i = 0; i < listOfConnectedCompos.size(); i++)
+	{
+		output << "----------Component #" << i + 1 << "-------------" << std::endl;
+		//using overloaded stream operator to print all details out
+		(listOfConnectedCompos.front()).getInvariantMoments();
+		output << listOfConnectedCompos.front() << std::endl;
+		listOfConnectedCompos.pop_front();
+	}
+
 
 	waitKey(0);
-
+	//close file
+	output.close();
 	return 0;
 }
 
 //method to execute nested DFS on the matrix
-void findCC(Mat pixelMat,Mat progressMat, int row, int rowSize, int col, CC *currCompo)
+void findCC(Mat& pixelMat,Mat& progressMat, int row, int rowSize, int col, CC *currCompo)
 {
 	//the index of the current pixel in the array, treats the matrix as "wraparound"
 	bool onPerim = false;
@@ -134,13 +154,13 @@ void findCC(Mat pixelMat,Mat progressMat, int row, int rowSize, int col, CC *cur
 		for (int adjY = col -1; adjY < col+1; adjY++)
 		{
 			//if we have found a background pixel (0=foreground, 255=background)
-			if (pixelMat.at<int>(adjX,adjY) == 255)
+			if (pixelMat.at<uchar>(adjX,adjY) == '255')
 			{
 				//if this pixel X is b/g and A is f/g it means X is on perimeter!
 				onPerim = true;
 			}
 			//else run a recursive DFS on the next adjacent pixel that HAS NOT been recorded!
-			if ((pixelMat.at<int>(adjX, adjY) == 0) && (progressMat.at<bool>(adjX,adjY) == false))
+			if ((pixelMat.at<uchar>(adjX, adjY) == '0') && (progressMat.at<bool>(adjX,adjY) == false))
 			{
 				findCC(pixelMat, progressMat, adjX, rowSize, adjY, currCompo);
 			}
@@ -153,21 +173,18 @@ void findCC(Mat pixelMat,Mat progressMat, int row, int rowSize, int col, CC *cur
 	(*currCompo).addPixToCC(row, col, onPerim);
 }
 
-Mat& ScanImageAndReduce(Mat& I)
+std::ostream &operator<< (std::ostream &outFile, const CC c)
 {
-	// accept only char type matrices
-	CV_Assert(I.depth() != sizeof(uchar));
+	outFile << "\nThe Centroid is: [" << c.centroid[x_bar] << "," << c.centroid[y_bar] << "]" << std::endl;
 
-	int channels = I.channels();
-
-	int nRows = I.rows;
-	int nCols = I.cols * channels;
-
-	if (I.isContinuous())
+	outFile << "\nThe invariant Moments are: ";
+	for (int i = 0; i < 7; i++)
 	{
-		nCols *= nRows;
-		nRows = 1;
+		outFile << c.invarMoment[i] << ", " << std::endl;
 	}
+		outFile << "\nThe Surface Area is: " << c.ccPixels.size() << std::endl;
+		outFile << "\nThe Perimeter is: " << c.perimeter<< std::endl;
+
+		return outFile;
 	
-	return I;
 }
