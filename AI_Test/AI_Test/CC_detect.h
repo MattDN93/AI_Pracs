@@ -33,6 +33,9 @@ bool writeFileSuccess = false;
 //OpenCV vars
 Mat inputImgMat;			//input matrix from image
 Mat tempProcMat;			//temporary processing matrix
+
+							//initialise a working matrix of size of the man matrix
+std::vector< std::vector< bool > > procMat;
 #pragma endregion
 
 #pragma region CC Class & Function Defs

@@ -70,9 +70,13 @@ int main(int argc)
 	tempProcMat = (Mat_<uchar>(binaryMat.rows, binaryMat.cols));
 	tempProcMat = Mat::zeros(binaryMat.rows, binaryMat.cols, CV_32F);
 	//DEBUG!
-	//tempProcMat = binaryMat.clone();
 
 	int pixArray[250][250];
+
+
+	//resize it to the same size as the image matrix
+	procMat.resize(binaryMat.cols+1, std::vector<bool>(binaryMat.rows+1, false));
+
 	//-------------------------start processing connected components----------
 	//DEBUG
 	for (int i = 0; i < binaryMat.rows; i++)
@@ -89,22 +93,26 @@ int main(int argc)
 	std::list<CC> listOfConnectedCompos;
 
 	uchar *row_ptr = NULL;
-	for (int i = 0; i < binaryMat.rows; i++)
+	for (int i = 1; i < binaryMat.rows; i++)
 	{
 		//row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
-		for (int j = 0; j < binaryMat.cols; j++)
+		for (int j = 1; j < binaryMat.cols; j++)
 		{
 			//look for an initial unprocessed pixel?
-			if (binaryMat.at<int>(i,j)==0)
+			if (binaryMat.at<uchar>(i,j)==0)
 			{
-				//instantiated object of CC class
-				CC connectedCompo;
-				//run DFS to find the connected components
-				findCC(&binaryMat,&tempProcMat, i, binaryMat.rows,j, &connectedCompo);
-				//if found, add to the list of CCs at the front
-				listOfConnectedCompos.push_front(connectedCompo);
-				
-				std::cout << "\n Connected Component Found!" << std::endl;
+				if (procMat[i][j] == false)
+				{
+					//instantiated object of CC class
+					CC connectedCompo;
+					//run DFS to find the connected components
+					findCC(&binaryMat, &tempProcMat, i, binaryMat.rows, j, &connectedCompo);
+					//if found, add to the list of CCs at the front
+					listOfConnectedCompos.push_front(connectedCompo);
+
+					std::cout << "\n Connected Component Found!" << std::endl;
+				}
+
 			}
 		}
 	}
@@ -155,19 +163,19 @@ void findCC(Mat *pixelMat,Mat *progressMat, int row, int rowSize, int col, CC *c
 	bool onPerim = false;
 
 	//mark the current pixel as visited (true)
-	(*progressMat).at<uchar>(row, col) = 1;
-
+	//(*progressMat).at<uchar>(row, col) = 1;
+	procMat[row][col] = true;
 	//check all 8 adjacent pixels! e.g. finding Xs about A
 	/*	row-1,col-1	->	X	X	X
 						X	A	X
 						X	X	X <- row+1,col+1
 	*/
-	for (int adjX = row -1; adjX < row +1 ; adjX++)
+	for (int adjX = row -1; adjX <= row +1 ; adjX++)
 	{
-		for (int adjY = col -1; adjY < col+1; adjY++)
+		for (int adjY = col -1; adjY <= col+1; adjY++)
 		{
 			std::cout << "\n Pixel:[";
-			std::cout << (*pixelMat).at<uchar>(adjX, adjY) << std::endl;
+			std::cout << (*pixelMat).at<uchar>(adjX, adjY);
 			std::cout << "]";
 			//if we have found a background pixel (0=foreground, 255=background)
 			if ((*pixelMat).at<uchar>(adjX,adjY) == 255)
@@ -176,10 +184,14 @@ void findCC(Mat *pixelMat,Mat *progressMat, int row, int rowSize, int col, CC *c
 				onPerim = true;
 			}
 	//		//else run a recursive DFS on the next adjacent pixel that HAS NOT been recorded!
-			if (((*pixelMat).at<uchar>(adjX, adjY) == 0) && ((*progressMat).at<uchar>(adjX,adjY) == 0))
+			if (((*pixelMat).at<uchar>(adjX, adjY) == 0))
 			{
-				std::cout << "doing DFS" << std::endl;
-				findCC(pixelMat, progressMat, adjX, rowSize, adjY, currCompo);
+				if (procMat[adjX][adjY]==false)
+				{
+					std::cout << "doing DFS" << std::endl;
+					findCC(pixelMat, progressMat, adjX, rowSize, adjY, currCompo);
+				}
+				
 			}
 			
 		}
