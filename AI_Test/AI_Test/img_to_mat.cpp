@@ -1,7 +1,18 @@
-/*		ENEL4AI
-		Basic Image -> Matrix Component
-		Matthew de Neef
-		212503024
+/* Application detail:		ENEL4AI
+							Artificial Intelligence
+	For:					Practical 1
+	Purpose:				Finding Connected Components
+	Student:				Matthew de Neef
+							212503024
+
+	Description:			This program receives an image in BMP, JPG or PNG format
+							and returns the # connected components in the image for
+							each of the connected components, also finds:
+							*7 invariant moments
+							*Centroid of images
+							*Perimeter and surface area in pixels
+	Prerequisites:			VC++ redist files for OpenCV
+							This code also available on http://github.com/mattdn93/AI_Pracs
 */
 
 #include "CC_detect.h"	//user-defined header with classes and var defs
@@ -9,7 +20,15 @@
 using namespace cv;		//for ease using openCV namespace
 						//stdlib fns will be ref'd explicitly
 
-/* The user calls this exe with arguments for the filename*/
+//----------------------time-keeping----------------
+
+//Reference https ://www.physicsforums.com/threads/measuring-time-elapsed-in-c.224989/
+double diffclock(clock_t clock1, clock_t clock2)
+{
+	double diffticks = clock1 - clock2;
+	double diffms = (diffticks*1000) / CLOCKS_PER_SEC;
+	return diffms;
+}
 
 int main(int argc)
 {
@@ -26,7 +45,8 @@ int main(int argc)
 		/*use CV libraries to deal with image
 		imread function takes any colour depth image with filename in argv
 		*/
-		
+
+
 		inputImgMat = imread(filePath, CV_LOAD_IMAGE_COLOR); //loads up image in grayscale format
 		if (inputImgMat.empty())
 		{
@@ -40,13 +60,17 @@ int main(int argc)
 		}
 	}
 
+
+	//time taken to load & transform the image START
+	clock_t begin_load_and_img_transform = clock();
+
 	//create an output file
-	std::ofstream output("ConnectedCompoData.txt"); 
+	std::ofstream output("ConnectedCompoData.txt");
 
 	//----------------image processing to matrix with OPENCV-----------------
 	/*instantiate class object
 	CC connectedCompo;*/
-	
+
 	//else we assume file opening OK...
 
 	//convert the image matrix to greyscale (basically resize it)
@@ -61,9 +85,16 @@ int main(int argc)
 	//apply threshold values (everything either goes to 0 or 255)
 	threshold(inputImgGreyScale, binaryMat, 50, 255, cv::THRESH_BINARY);
 
-	//display the results using OCV's window render
-	namedWindow("Binary matrix", WINDOW_AUTOSIZE);
-	imshow("Binary Matrix", binaryMat);
+	if (1)
+	{
+		//display the results using OCV's window render
+		namedWindow("Binary matrix",WINDOW_NORMAL);
+		imshow("Binary Matrix", binaryMat);
+	}
+	//end timing for loading image!
+	clock_t end_load_and_img_transform = clock();
+	double load_time = double(diffclock(end_load_and_img_transform, begin_load_and_img_transform));
+
 
 	//create a copy of the image matrix to mark completed pixels
 	//the dimensions are copied but its set to FALSE
@@ -73,19 +104,23 @@ int main(int argc)
 
 	int pixArray[250][250];
 
+	//time taken to find Connected components START
+	clock_t begin_find_cc_and_params = clock();
 
 	//resize it to the same size as the image matrix
-	procMat.resize(binaryMat.cols+1, std::vector<bool>(binaryMat.rows+1, false));
+	procMat.resize(binaryMat.cols + 1, std::vector<bool>(binaryMat.rows + 1, false));
 
 	//-------------------------start processing connected components----------
 	//DEBUG
-	for (int i = 0; i < binaryMat.rows; i++)
-	{
-		//row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
-		for (int j = 0; j < binaryMat.cols; j++)
+	if (DEBUG){
+		for (int i = 0; i < binaryMat.rows; i++)
 		{
-			pixArray[i][j] = binaryMat.at<uchar>(i, j);
-			std::cout << pixArray[i][j];
+			//row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
+			for (int j = 0; j < binaryMat.cols; j++)
+			{
+				pixArray[i][j] = binaryMat.at<uchar>(i, j);
+				std::cout << pixArray[i][j];
+			}
 		}
 	}
 
@@ -109,8 +144,9 @@ int main(int argc)
 					findCC(&binaryMat, &tempProcMat, i, binaryMat.rows, j, &connectedCompo);
 					//if found, add to the list of CCs at the front
 					listOfConnectedCompos.push_front(connectedCompo);
-
-					std::cout << "\n Connected Component Found!" << std::endl;
+					if (DEBUG) {
+						std::cout << "\n Connected Component Found!" << std::endl;
+					}
 				}
 
 			}
@@ -141,7 +177,19 @@ int main(int argc)
 		listOfConnectedCompos.pop_front();
 	}
 
+	clock_t end_find_cc_and_params = clock();
+	//find time taken to perform calculations
+	double proc_time = double(diffclock(end_find_cc_and_params, begin_find_cc_and_params));
 
+	//Write timing results to file and screen
+	std::cout << "\n----------Timing analysis-------------" << std::endl;
+	output << "\n----------Timing analysis-------------" << std::endl;
+	std::cout << "\n Time to load & parse image with OpenCV: " << load_time << " ms." << std::endl;
+	output << "\n Time to load & parse image with OpenCV: " << load_time << " ms." << std::endl;
+
+	std::cout << "\n Time to find parameters and CC: " << proc_time << " ms." << std::endl;
+	output << "\n Time to find parameters and CC: " << proc_time << " ms." << std::endl;
+	//system("pause");
 	waitKey(0);
 	//close file
 	output.close();
@@ -164,11 +212,13 @@ void findCC(Mat *pixelMat,Mat *progressMat, int row, int rowSize, int col, CC *c
 	*/
 	for (int adjX = row -1; adjX <= row +1 ; adjX++)
 	{
-		for (int adjY = col -1; adjY <= col+1; adjY++)
+		for (int adjY = col - 1; adjY <= col + 1; adjY++)
 		{
+			if (DEBUG) {
 			std::cout << "\n Pixel:[";
 			std::cout << (*pixelMat).at<uchar>(adjX, adjY);
 			std::cout << "]";
+			}
 			//if we have found a background pixel (0=foreground, 255=background)
 			if ((*pixelMat).at<uchar>(adjX,adjY) == 255)
 			{
@@ -180,7 +230,9 @@ void findCC(Mat *pixelMat,Mat *progressMat, int row, int rowSize, int col, CC *c
 			{
 				if (procMat[adjX][adjY]==false)
 				{
-					std::cout << "doing DFS" << std::endl;
+					if (DEBUG) {
+						std::cout << "doing DFS" << std::endl;
+					}
 					findCC(pixelMat, progressMat, adjX, rowSize, adjY, currCompo);
 				}
 				

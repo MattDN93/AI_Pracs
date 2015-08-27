@@ -1,3 +1,14 @@
+/*			MATTHEW DE NEEF
+3 				212503024
+4 			 CONNECTED COMPONENTS
+5 This program presents a method of connected component-finding
+  Please read the report for the
+7 full theoretical background.
+8
+9 This file is the header with declararions and flags etc.
+10
+11 Compiled in VS2015 on Windows 10 10240 */
+
 #pragma once
 
 #pragma region Includes
@@ -5,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <ctime>
 
 #include <opencv2/opencv.hpp>
 #include <iostream>
@@ -16,7 +28,7 @@
 #define y_bar 1
 
 //for debug only
-#define DEBUG 1
+#define DEBUG 0
 
 using namespace cv;
 #pragma endregion
@@ -305,7 +317,9 @@ inline bool CC::findInvarMoments()
 
 #pragma region Other Prototypes
 
+//prototype for running the DFS to find conncted compos
 void findCC(Mat *,Mat *, int, int, int, CC *);
-
+//clock method for timing purposes
+double diffclock();
 
 #pragma endregion
