@@ -62,9 +62,9 @@ public:
 	//returns surface area /perimeter of CC
 	int findSurfArea();
 	int findPerimeter();
+	float *getCentroid();
 	//-------------get accessors-----------
 	//returns pointer to centroids array
-	float *getCentroid();
 	//returns pointer to invMoments array
 	float *getInvariantMoments();
 	//returns 2D points from Mat object
@@ -78,7 +78,6 @@ private:
 	//vector allows for structs of each pixel+co-ord to be stores
 	//memory allocation is managed automatically
 	std::vector<pix> ccPixels;
-	//std::vector<Point2f> points;
 	//-------------centroids and invariant moments-----------
 	//invariant moments of connected components (0-6 = 7 moments)
 	float invarMoment[7];
@@ -262,7 +261,7 @@ inline bool CC::findInvarMoments()
 	{
 		return false;
 	}
-	//else {
+	else {
 		//first fine neta values with normalized invariant moment formula
 		float neta_02 = findNormalisedCentroidMoments(0, 2);
 		float neta_20 = findNormalisedCentroidMoments(2, 0);
@@ -293,7 +292,7 @@ inline bool CC::findInvarMoments()
 			(3 * pow(neta_30 + neta_12, 2) - pow(neta_21 + neta_03, 2));
 
 		return true;
-	//}
+	}
 	
 }
 
@@ -303,7 +302,7 @@ inline bool CC::findInvarMoments()
 
 #pragma region Other Prototypes
 
-void findCC(Mat&,Mat&, int, int, int, CC *);
+void findCC(Mat *,Mat *, int, int, int, CC *);
 
 
 #pragma endregion
