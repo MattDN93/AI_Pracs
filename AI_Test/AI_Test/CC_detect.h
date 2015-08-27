@@ -40,7 +40,7 @@ std::string filePath;		//name of file path
 std::string quitStr = "quit";
 
 bool fileSuccess = false;			//whether file opened OK
-bool writeFileSuccess = false;
+bool newImage = true;
 
 //OpenCV vars
 Mat inputImgMat;			//input matrix from image
