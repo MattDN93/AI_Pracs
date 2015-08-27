@@ -196,6 +196,7 @@ inline float * CC::getInvariantMoments()
 			std::cerr << "ERROR: Can't call invariant moment calculation function." << std::endl;
 		}
 	}
+
 	return invarMoment;
 }
 

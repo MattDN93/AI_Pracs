@@ -78,11 +78,11 @@ int main(int argc)
 	uchar *row_ptr = NULL;
 	for (int i = 0; i < binaryMat.rows; i++)
 	{
-		//row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
+		row_ptr = binaryMat.ptr<uchar>(i);		//get the current row
 		for (int j = 0; j < binaryMat.cols; j++)
 		{
 			//look for an initial unprocessed pixel?
-			if (binaryMat.at<int>(i,j) == 0)
+			if ((int)row_ptr[j] == 0)
 			{
 				//instantiated object of CC class
 				CC connectedCompo;
@@ -154,13 +154,13 @@ void findCC(Mat& pixelMat,Mat& progressMat, int row, int rowSize, int col, CC *c
 		for (int adjY = col -1; adjY < col+1; adjY++)
 		{
 			//if we have found a background pixel (0=foreground, 255=background)
-			if (pixelMat.at<uchar>(adjX,adjY) == '255')
+			if (pixelMat.at<uchar>(adjX,adjY) == 255)
 			{
 				//if this pixel X is b/g and A is f/g it means X is on perimeter!
 				onPerim = true;
 			}
 			//else run a recursive DFS on the next adjacent pixel that HAS NOT been recorded!
-			if ((pixelMat.at<uchar>(adjX, adjY) == '0') && (progressMat.at<bool>(adjX,adjY) == false))
+			if ((pixelMat.at<uchar>(adjX, adjY) == 0) && (progressMat.at<bool>(adjX,adjY) == false))
 			{
 				findCC(pixelMat, progressMat, adjX, rowSize, adjY, currCompo);
 			}
