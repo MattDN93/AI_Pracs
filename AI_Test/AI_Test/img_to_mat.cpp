@@ -122,16 +122,6 @@ int main(int argc)
 		std::cout << binaryMat;
 	}
 
-	//Mat newBinMat = ScanImageAndReduce(binaryMat);
-	//int i, j;
-	//for (int i = 0; i < binaryMat.rows; i++)
-	//{
-	//	for (int j = 0; j < binaryMat.cols; j++)
-	//	{
-	//		binaryMat.at()
-	//	}
-	//}
-
 	//--------------perform the calculation for invariat moments----
 	
 
@@ -139,8 +129,10 @@ int main(int argc)
 	std::cout << "\n\nDone. Outputting to file....." << std::endl;
 	std::cout << "\nA total of " << listOfConnectedCompos.size() << " connected components found." << std::endl;
 
-
-	for (int i = 0; i < listOfConnectedCompos.size(); i++)
+	//initialise a totalsize counter since we are popping off a list and the size will reduce
+	int total_size = 0;
+	total_size = listOfConnectedCompos.size();
+	for (int i = 0; i < total_size; i++)
 	{
 		output << "----------Component #" << i + 1 << "-------------" << std::endl;
 		//using overloaded stream operator to print all details out
@@ -208,13 +200,14 @@ std::ostream &operator<< (std::ostream &outFile, const CC c)
 {
 	outFile << "\nThe Centroid is: [" << c.centroid[x_bar] << "," << c.centroid[y_bar] << "]" << std::endl;
 
-	outFile << "\nThe invariant Moments are: ";
+	outFile << "\nThe invariant Moments are:\n ";
 	for (int i = 0; i < 7; i++)
 	{
+		outFile << "<phi_"<<i<<">: ";
 		outFile << c.invarMoment[i] << ", " << std::endl;
 	}
-		outFile << "\nThe Surface Area is: " << c.ccPixels.size() << std::endl;
-		outFile << "\nThe Perimeter is: " << c.perimeter<< std::endl;
+		outFile << "\nThe Surface Area is: " << c.ccPixels.size() << " pixels."<<std::endl;
+		outFile << "\nThe Perimeter is: " << c.perimeter<<" pixels."<< std::endl;
 
 		return outFile;
 	
